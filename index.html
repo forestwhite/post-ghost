@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostGhost</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Babel Standalone for JSX transpilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            background-color: #121212;
+            color: #e5e7eb;
+            font-family: Arial, sans-serif;
+        }
+        .dark-mode {
+            background-color: #121212;
+            color: #e5e7eb;
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function App() {
+            const [inputText, setInputText] = useState('');
+            const [posts, setPosts] = useState([]);
+            const [history, setHistory] = useState(JSON.parse(localStorage.getItem('postghost_history')) || []);
+            const [isWindowAiAvailable, setIsWindowAiAvailable] = useState(false);
+
+            useEffect(() => {
+                setIsWindowAiAvailable(typeof window.ai !== 'undefined');
+                localStorage.setItem('postghost_history', JSON.stringify(history));
+            }, [history]);
+
+            const handleInputChange = (e) => {
+                setInputText(e.target.value);
+            };
+
+            const handleSubmit = async () => {
+                if (!isWindowAiAvailable) {
+                    alert('Chrome flags are missing. Please enable the window.ai API.');
+                    return;
+                }
+
+                try {
+                    const response = await window.ai.generate({
+                        prompt: inputText,
+                        maxTokens: 100,
+                        temperature: 0.7
+                    });
+
+                    const { text } = response;
+
+                    const linkedInPosts = text.split('---').slice(0, 3).map(post => post.trim());
+                    const xHooks = text.split('---').slice(3, 8).map(hook => hook.trim());
+                    const newsletterSummary = text.split('---')[8].trim();
+
+                    setPosts({
+                        linkedInPosts,
+                        xHooks,
+                        newsletterSummary
+                    });
+
+                    setHistory([...history, inputText]);
+                } catch (error) {
+                    console.error('Error generating content:', error);
+                    alert('An error occurred while generating content. Please try again.');
+                }
+            };
+
+            const handleUpgradeClick = () => {
+                window.open('https://buy.stripe.com/dRm8wOcMd417dVmeDo3ks00', '_blank');
+            };
+
+            return (
+                <div className="p-6">
+                    <h1 className="text-2xl font-bold mb-4">PostGhost</h1>
+                    {!isWindowAiAvailable && (
+                        <div className="bg-red-800 p-4 rounded mb-4 text-white">
+                            Chrome flags are missing. Please enable the window.ai API to use this app.
+                        </div>
+                    )}
+                    <textarea
+                        value={inputText}
+                        onChange={handleInputChange}
+                        placeholder="Enter text or transcripts here..."
+                        rows="5"
+                        className="w-full p-2 mb-4 bg-gray-800 text-white rounded"
+                        disabled={!isWindowAiAvailable}
+                    />
+                    <button onClick={handleSubmit} className="bg-blue-500 text-white px-4 py-2 rounded mr-2" disabled={!isWindowAiAvailable}>Generate</button>
+                    <button onClick={handleUpgradeClick} className="bg-green-500 text-white px-4 py-2 rounded">Go Pro</button>
+
+                    {posts.linkedInPosts && (
+                        <div className="mt-6">
+                            <h2 className="text-xl font-bold mb-2">LinkedIn Posts</h2>
+                            {posts.linkedInPosts.map((post, index) => (
+                                <div key={index} className="bg-gray-800 p-4 rounded mb-2">
+                                    {post}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {posts.xHooks && (
+                        <div className="mt-6">
+                            <h2 className="text-xl font-bold mb-2">X Hooks</h2>
+                            {posts.xHooks.map((hook, index) => (
+                                <div key={index} className="bg-gray-800 p-4 rounded mb-2">
+                                    {hook}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {posts.newsletterSummary && (
+                        <div className="mt-6">
+                            <h2 className="text-xl font-bold mb-2">Newsletter Summary</h2>
+                            <div className="bg-gray-800 p-4 rounded">
+                                {posts.newsletterSummary}
+                            </div>
+                        </div>
+                    )}
+
+                    {history.length > 0 && (
+                        <div className="mt-6">
+                            <h2 className="text-xl font-bold mb-2">History</h2>
+                            <ul className="bg-gray-800 p-4 rounded">
+                                {history.map((item, index) => (
+                                    <li key={index} className="mb-2">{item}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
