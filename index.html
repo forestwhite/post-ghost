@@ -4,10 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PostGhost</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Babel Standalone for JSX transpilation -->
+    <!-- 1. Load React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+
+    <!-- 2. Load ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- 3. Load Babel (for JSX browser compilation) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
     <style>
         body {
             background-color: #121212;
@@ -23,6 +28,7 @@
 <body class="dark-mode">
     <div id="root"></div>
 
+    <!-- 4. React Application Script -->
     <script type="text/babel">
         const { useState, useEffect } = React;
 
